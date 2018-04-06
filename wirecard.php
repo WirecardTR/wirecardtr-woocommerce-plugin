@@ -9,8 +9,6 @@ error_reporting(E_ALL);
   Author: Wirecard adına Codevist BT
   Author URI: http://www.codevist.com
  */
-include( plugin_dir_path(__FILE__) . '/includes/class-config.php');
-
 /* Define the database prefix */
 global $wpdb;
 define("_DB_PREFIX_", $wpdb->prefix);

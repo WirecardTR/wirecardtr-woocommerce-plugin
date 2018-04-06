@@ -1,6 +1,10 @@
 # wirecardtr-woocommerce-plugin
 Wirecard Türkiye WooCommerce Plugin'i 
 
+## GitHub'dan İndirip Yükleme İşlemi
+Wirecard Woocommerce Plungin'i buradan GitHub'dan indirdiğinizde Wordpress'in Eklenti Yükle kısmından kurulum gerçekleştiremezsiniz.
+Wordpress'e yükleme işlemi şöyle olmalı; GitHub'dan indirdiğiniz "wirecardtr-woocommerce-plugin.zip" dosyasını açarak içeride yer alan "wirecard" klasörünü Wordpress'in kurulu olduğu dizinin içinde yer alan plugins klasörüne atmalısınız.Bu işlemden sonra eklentiyi Wordpress Admin Paneli içerisinde yer alan Eklentiler sayfası altında görüntüleyebilir, aktifleştirebilirsiniz.
+Bu işlemleri yapmadan plugin'i sisteminize hızlı bir şekilde entegre etmeniz için hazırlamış olduğumuz developer portalından "Woocommerce" plugin'i indirip (http://developer.wirecard.com.tr/tr/acik-kaynak) entegrasyonu tamamlayabilirsiniz.
 
 ## Kullanım
 Wirecard servislerini kullanabilmek için [Wirecard'a](https://www.wirecard.com.tr) üye olmalısınız. Üye olduktan sonra Wirecard sizinle token bilgileri için UserCode ve Pin keylerini, sms ile ödeme servislerinde kullanılacak olan TurkcellServiceId değerlerini sizinle paylaşacaktır. Paylaşılan bu anahtarları kendi projenizde ilgili yerlere yazarak saklamanız ve kullanmanız gerekmektedir.

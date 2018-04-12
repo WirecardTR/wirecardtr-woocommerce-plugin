@@ -128,7 +128,7 @@ function init_wirecard_gateway_class()
 				),
 					'installment' => array(
 					'title' => 'Taksit',
-					'label' => 'Taksitli İşlem Aktif Mi?',
+					'label' => 'Taksitli İşlem Aktif Mi? <br><strong>(Sadece Form ile Direkt Ödeme yönteminde çalışmaktadır.)</strong>',
 					'type' => 'checkbox',
 					'desc_tip' => 'Taksitli ödemeye izin verecekmisiniz?',
 					'default' => 'yes',
@@ -216,7 +216,6 @@ function init_wirecard_gateway_class()
 			
 		
 			$expire_date = explode('/', $_POST['wirecard-card-expiry']);
-		
 
 				$record = array(
 					'order_id' => $order_id,
@@ -361,7 +360,7 @@ function init_wirecard_gateway_class()
 				$record['result_code'] = $sxml->Item[1]['Value'];
 				$record['result_message'] = helper::turkishreplace( $sxml->Item[2]['Value']);
 				$record['shared_payment_url'] =$sxml->Item[3]['Value'];
-
+				
 				return $record;
 			}
 			
@@ -386,6 +385,7 @@ function init_wirecard_gateway_class()
 				$record = $this->pay($orderid);
 				if($record["shared_payment_url"] != 'null') // Ortak ödemeye yönlen 
 				{	
+					$this->saveRecord($record);
 					wp_redirect($record["shared_payment_url"]);
 					exit;
 				}
@@ -419,6 +419,7 @@ function init_wirecard_gateway_class()
 					$order->payment_complete();
 					$woocommerce->cart->empty_cart(); 
 					wp_redirect($this->get_return_url());
+					$this->saveRecord($record);
 					exit;
 					$error_message = false;
 				}

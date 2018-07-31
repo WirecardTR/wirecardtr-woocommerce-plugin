@@ -128,7 +128,7 @@ function init_wirecard_gateway_class()
 				),
 					'installment' => array(
 					'title' => 'Taksit',
-					'label' => 'Taksitli İşlem Aktif Mi? <br><strong>(Sadece Form ile Direkt Ödeme yönteminde çalışmaktadır.)</strong>',
+					'label' => 'Taksitli İşlem Aktif Mi? <br><strong>(Sadece Üye İş Yeri Ödeme Sayfası yönteminde çalışmaktadır.)</strong>',
 					'type' => 'checkbox',
 					'desc_tip' => 'Taksitli ödemeye izin verecekmisiniz?',
 					'default' => 'yes',
@@ -139,9 +139,9 @@ function init_wirecard_gateway_class()
 					'desc_tip' => 'Ödeme Yönteminiz?',
 					'default' => 'form',
 					'options' => array(
-						'shared3d' => '3D ile Ortak Ödeme Sayfası ',
-						'shared' => 'Ortak Ödeme Sayfası',
-						'form' => 'Form ile Direkt Ödeme',
+						'shared3d' => 'Ortak Ödeme Sayfası (3DS li) ',
+						'shared' => 'Ortak Ödeme Sayfası (3DS siz)',
+						'form' => 'Üye İş Yeri Ödeme Sayfası',
 					),
 				)
 			);

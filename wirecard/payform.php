@@ -7,6 +7,41 @@ $wirecard_plugin_url = plugins_url().'/wirecard';
 $wirecard_settings = get_option("woocommerce_wirecard_settings");
 $isInstallment = $wirecard_settings["installment"];
 $mode = $wirecard_settings["mode"];
+			$user_id = get_current_user_id();
+
+global $wpdb;
+$isStorageCard= $wpdb->get_results('SELECT * FROM `' . $wpdb->prefix . 'wirecardcardstorage` WHERE `customer_id` = ' . (int) $user_id, ARRAY_A);
+if(empty($isStorageCard))
+{
+echo "<style>
+
+.hiderOtherCard{
+	
+visibility: hidden;
+
+}
+</style>";
+echo'<script>$("#cc_form_submit").attr("disabled", true);</script>';
+
+}
+else
+{
+echo "<style>
+
+.hider{
+	
+visibility: hidden;
+
+}
+
+</style>
+
+
+";	
+
+echo'<script>$("#cc_form_submit").attr("disabled", false);</script>';
+
+}
 
 ?>
 
@@ -41,25 +76,45 @@ $mode = $wirecard_settings["mode"];
     <?php if($mode == 'form') : ?>  
             <div class="wirecard_form_half">
                 <table id="cc_form_inputs_table">
-                    <tr>
+
+				
+				<?php foreach($isStorageCard as $item): ?>
+    <tr>
+        <td>
+		
+		<input type="radio" name="storage-card-id" value="<?php echo $item['storage_id']; ?>" checked> <?php echo $item['cardnumber']; ?>  
+		
+		</td>
+    </tr>
+    <?php endforeach; ?>
+	
+	
+<tr class="hiderOtherCard">
+        <td>
+		
+		<input type="radio" name="storage-card-id" id="otherCard" value="100" > Başka Kart Kullan 
+		
+		</td>
+    </tr>
+                    <tr class="hider">
                         <td>
                         Kart No <br/>
                     <input type="text" id="cc_number" name="wirecard-card-number" class="cc_input" placeholder="•••• •••• •••• ••••"/>
                     </td>
-                    </tr>
-                    <tr>
+                    </tr >
+                    <tr class="hider">
                     <td>
                         Son Kul. Tar.<br/>
                     <input type="text" size="5" id="cc_expiry" name="wirecard-card-expiry" class="cc_input" placeholder="AA/YY"/>
                     </td>
-                    </tr>
-                    <tr>
+                    </tr >
+                    <tr class="hider">
                 <td>
                         Güvenlik kodu<br/>
                     <input type="text" size="4" id="cc_cvc" name="wirecard-card-cvc" class="cc_input" placeholder="•••"/>
                     </td>
                     </tr>
-                    <tr>
+                    <tr class="hider">
                         <td >
                         Kart üzerindeki isim<br/>
                     <input type="text" id="cc_name" name="wirecard-card-name" class="cc_input" placeholder="Ad Soyad"/>
@@ -67,7 +122,7 @@ $mode = $wirecard_settings["mode"];
                     </tr>
 
                     <?php if($isInstallment == 'yes') : ?>
-                    <tr>
+                    <tr class="hider">
                                 <td >
                                 Taksit Sayısı<br/>
                                 <select name="wirecard-installment-count">
@@ -79,15 +134,20 @@ $mode = $wirecard_settings["mode"];
                             </td>
                             </tr>
                     <?php endif; ?>
-
+<tr class="hider">
+                        <td >
+                        Kartımın Saklanmasını İstiyorum
+                    <input type="checkbox" id="card-save" name="wirecard-card-save" class="cc_input" />
+                    </td>
+                    </tr>
                 </table>
 
             </div>
       
-            <div class="wirecard_form_half">
+            <div class="hider wirecard_form_half">
                 <div class="card-wrapper"></div>
             </div>
-            <div class="clear clearfix"></div>
+            <div class=" clear clearfix"></div>
                         <hr/>
             <div align="center">
             <div class="" id="cc_validation">Lütfen formu kontrol ediniz</div>
@@ -145,11 +205,28 @@ $mode = $wirecard_settings["mode"];
         $('input#cc_number').payment('formatCardNumber');
         $('input#cc_expiry').payment('formatCardExpiry');
         $('input#cc_cvc').payment('formatCardCVC');
-        $("#cc_form_submit").attr("disabled", true);
+        // $("#cc_form_submit").attr("disabled", true);
+
+		
+		$('input[type=radio][name=storage-card-id]').change(function() {
+    if (this.value == '100') {
+for (let el of document.querySelectorAll('.hider')) el.style.visibility = 'visible';
+            $("#cc_form_submit").attr("disabled", true);
+
+    }
+	else
+	{
+		for (let el of document.querySelectorAll('.hider')) el.style.visibility = 'hidden';
+            $("#cc_form_submit").attr("disabled", false);
+
+	}
+    
+});
+		
 
         $('.cc_input').bind('keypress keyup keydown focus', function (e) {
             $(this).removeClass('error');
-            $("#cc_form_submit").attr("disabled", true);
+            // $("#cc_form_submit").attr("disabled", true);
             var hasError = false;
             var cardType = $.payment.cardType($('input#cc_number').val());
 
@@ -178,7 +255,7 @@ $mode = $wirecard_settings["mode"];
             }
             else {
                 $("#cc_validation").show();
-                $("#cc_form_submit").attr("disabled", true);
+                // $("#cc_form_submit").attr("disabled", true);
                 $('table#cc_form_table').addClass('error');
             }
         });

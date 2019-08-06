@@ -40,7 +40,20 @@ function myplugin_activate()
 	  KEY `order_id` (`order_id`),
 	  KEY `customer_id` (`customer_id`)
 	) DEFAULT CHARSET=utf8;';
+	
+	$sqlCardStorage = 'CREATE TABLE IF NOT EXISTS `' . $wpdb->prefix . 'wirecardCardStorage` (
+	  `storage_id` int(10) unsigned AUTO_INCREMENT PRIMARY KEY NOT NULL,
+	  `customer_id` int(10) unsigned NOT NULL,
+	  `wirecard_token_id` varchar(64) NULL,
+	  `cardholdername` varchar(60) NULL,
+	  `cardnumber` varchar(25) NULL,
+	  `email` varchar(25) NULL,
+	  `card-cvc` varchar(8) NULL,
+	  `createddate` datetime NOT NULL,
+	  KEY `customer_id` (`customer_id`)
+	) DEFAULT CHARSET=utf8;';
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php');
+	dbDelta($sqlCardStorage);
 	return dbDelta($sql);
 }
 
@@ -128,7 +141,7 @@ function init_wirecard_gateway_class()
 				),
 					'installment' => array(
 					'title' => 'Taksit',
-					'label' => 'Taksitli İşlem Aktif Mi? <br><strong>(Sadece Üye İş Yeri Ödeme Sayfası yönteminde çalışmaktadır.)</strong>',
+					'label' => 'Taksitli İşlem Aktif Mi? <br><strong>(Sadece Form ile Direkt Ödeme yönteminde çalışmaktadır.)</strong>',
 					'type' => 'checkbox',
 					'desc_tip' => 'Taksitli ödemeye izin verecekmisiniz?',
 					'default' => 'yes',
@@ -139,9 +152,9 @@ function init_wirecard_gateway_class()
 					'desc_tip' => 'Ödeme Yönteminiz?',
 					'default' => 'form',
 					'options' => array(
-						'shared3d' => 'Ortak Ödeme Sayfası (3DS li) ',
-						'shared' => 'Ortak Ödeme Sayfası (3DS siz)',
-						'form' => 'Üye İş Yeri Ödeme Sayfası',
+						'shared3d' => '3D ile Ortak Ödeme Sayfası ',
+						'shared' => 'Ortak Ödeme Sayfası',
+						'form' => 'Form ile Direkt Ödeme',
 					),
 				)
 			);
@@ -236,9 +249,12 @@ function init_wirecard_gateway_class()
 					'shared_payment_url' => 'null'
 				);
 
+		$cardSave=(bool) $_POST['wirecard-card-save'];
+		$storegaCardId=(int) $_POST['storage-card-id'];
 		
 			if ($mode == 'form')
 			{
+			
 			
 				$request = new CCProxySaleRequest();
 				$request->ServiceType = "CCProxy";
@@ -259,12 +275,37 @@ function init_wirecard_gateway_class()
 				$request->CreditCardInfo->ExpireMonth = str_replace(' ', '', $expire_date[0]);
 				$request->CreditCardInfo->Cvv=$_POST['wirecard-card-cvc'];
 				$request->CreditCardInfo->Price=$amount * 100;  // 1 TL için 100 Gönderilmeli.
+
+				if(!is_null($storegaCardId) && $storegaCardId>0 && $storegaCardId!=100)
+				{
+					
+					global $wpdb;
+					$storagecard= $wpdb->get_row('SELECT * FROM `' . $wpdb->prefix . 'wirecardcardstorage` WHERE `storage_id` = ' . (int) $storegaCardId, ARRAY_A);
+					$request->CreditCardInfo= new CreditCardInfo();
+					$request->CreditCardInfo->Cvv=$storagecard['card-cvc'];
+					$request->CreditCardInfo->Price=$amount * 100;  // 1 TL için 100 Gönderilmeli.
+
+					$request->CardTokenization= new CardTokenization();
+					$request->CardTokenization->RequestType=0;
+					$request->CardTokenization->CustomerId=$user_id;
+					$request->CardTokenization->ValidityPeriod=0;
+					$request->CardTokenization->CCTokenId=$storagecard['wirecard_token_id'];;
+				}
+				else if($cardSave=='1')
+				{
+					
+					
+					$request->CardTokenization= new CardTokenization();
+					$request->CardTokenization->RequestType=1;
+					$request->CardTokenization->CustomerId=$user_id;
+					$request->CardTokenization->ValidityPeriod=0;
+					
+							
+				}
 			
 				$record['shared_payment_url']='null';
 				try {
-				
 					$response = CCProxySaleRequest::execute($request); 
-					
 				} catch (Exception $e) {
 					$record['result_code'] = 'ERROR';
 					$record['result_message'] = $e->getMessage();
@@ -272,7 +313,34 @@ function init_wirecard_gateway_class()
 					return $record;
 				}
 
+								
 				$sxml = new SimpleXMLElement( $response);
+
+				if($cardSave=='1' && $sxml->Item[7]['Value']!="00000000-0000-0000-0000-000000000000")
+				{
+				$recordCardStorage = array(
+					'customer_id' => $user_id,
+					'wirecard_token_id' => $sxml->Item[7]['Value'],
+					'cardholdername' => $_POST['wirecard-card-name'],
+					'cardnumber' => substr($_POST['wirecard-card-number'], 0, 6) . 'XXXXXXXX' . substr($_POST['wirecard-card-number'], -2),
+					'createddate' =>date("Y-m-d h:i:s"), 
+					'card-cvc' =>$_POST['wirecard-card-cvc']
+				);
+			try{
+			global $wpdb;
+			$wpdb->insert($wpdb->prefix . 'wirecardcardstorage', $recordCardStorage);
+
+			}
+			catch (Exception $e) {
+								print_r($e);
+
+					print_r($recordCardStorage);
+				}
+			
+			
+				
+				}
+				
 
 				$record['status_code'] = $sxml->Item[0]['Value'];
 				$record['result_code'] = $sxml->Item[1]['Value'];
@@ -280,7 +348,7 @@ function init_wirecard_gateway_class()
 				$record['wirecard_id'] =   $sxml->Item[3]['Value'];
 				$record['cardnumber'] =    $sxml->Item[5]['Value'];
 				$record['amount_paid'] = (string) $response['StatusCode'] == "0" ? $amount : 0;
-			
+
 				return $record;
 
 			}
@@ -459,6 +527,21 @@ function init_wirecard_gateway_class()
 		{
 			global $wpdb;
 			return $wpdb->get_row('SELECT * FROM `' . $wpdb->prefix . 'wirecard` WHERE `order_id` = ' . (int) $order_id, ARRAY_A);
+		}
+		
+		public function addRecordCardStorage($recordCardStorage)
+		{
+	
+			try{
+			global $wpdb;
+			$wpdb->insert($wpdb->prefix . 'wirecardcardstorage', $addRecordCardStorage);
+			}
+			catch (Exception $e) {
+			
+					print_r($e);
+					print_r($recordCardStorage);
+				}
+			
 		}
 	}
 

@@ -249,6 +249,7 @@ function init_wirecard_gateway_class()
 					'shared_payment_url' => 'null'
 				);
 
+				
 		$cardSave=(bool) $_POST['wirecard-card-save'];
 		$storegaCardId=(int) $_POST['storage-card-id'];
 		
@@ -322,7 +323,7 @@ function init_wirecard_gateway_class()
 					'customer_id' => $user_id,
 					'wirecard_token_id' => $sxml->Item[7]['Value'],
 					'cardholdername' => $_POST['wirecard-card-name'],
-					'cardnumber' => substr($_POST['wirecard-card-number'], 0, 6) . 'XXXXXXXX' . substr($_POST['wirecard-card-number'], -2),
+					'cardnumber' => substr($_POST['wirecard-card-number'], 0, 7) . 'XX XXXX ' . substr($_POST['wirecard-card-number'], -4),
 					'createddate' =>date("Y-m-d h:i:s"), 
 					'card-cvc' =>$_POST['wirecard-card-cvc']
 				);
@@ -334,7 +335,6 @@ function init_wirecard_gateway_class()
 			catch (Exception $e) {
 								print_r($e);
 
-					print_r($recordCardStorage);
 				}
 			
 			

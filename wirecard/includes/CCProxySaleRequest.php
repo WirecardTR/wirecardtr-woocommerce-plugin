@@ -17,7 +17,8 @@ class CCProxySaleRequest
     public  $InstallmentCount; 
     public  $Description; 
     public  $ExtraParam; 
-    public  $CardTokenization; 
+	public  $ErrorURL; 
+    public  $SuccessURL;
 
     public static function Execute(CCProxySaleRequest $request)
     {
@@ -43,21 +44,16 @@ class CCProxySaleRequest
         "        <Cvv>" . urlencode($this->CreditCardInfo->Cvv) . "</Cvv>\n" .
         "        <Price>" . urlencode($this->CreditCardInfo->Price) . "</Price>\n" .
         "    </CreditCardInfo>\n" .
-		"    <CardTokenization>\n" .
-        "        <RequestType>" . urlencode($this->CardTokenization->RequestType) . "</RequestType>\n" .
-        "        <CustomerId>" . urlencode($this->CardTokenization->CustomerId) . "</CustomerId>\n" .
-        "        <ValidityPeriod>" . urlencode($this->CardTokenization->ValidityPeriod) . "</ValidityPeriod>\n" .
-        "        <CCTokenId>" . urlencode($this->CardTokenization->CCTokenId) . "</CCTokenId>\n" .
-        "    </CardTokenization>\n" .
         "    <MPAY>" . $this->MPAY . "</MPAY>\n" .
         "    <IPAddress>" . $this->IPAddress . "</IPAddress>\n" .
         "    <PaymentContent>" . $this->PaymentContent . "</PaymentContent>\n" .
         "    <InstallmentCount>" . $this->InstallmentCount . "</InstallmentCount>\n" .
         "    <Description>" . $this->Description . "</Description>\n" .
         "    <ExtraParam>" . $this->ExtraParam . "</ExtraParam>\n" .
+		"    <ErrorURL>" . $this->ErrorURL . "</ErrorURL>\n" .
+        "    <SuccessURL>" . $this->SuccessURL . "</SuccessURL>\n" .
         "</WIRECARD>";
    
-echo ($xml_data); 
          return $xml_data;
     }
 }
